@@ -1,0 +1,55 @@
+POST http://localhost:9000/login
+Content-Type: application/x-www-form-urlencoded
+
+email = user@gmail.com &
+password = fsadfasdf
+
+
+###
+GET http://localhost:9000/products
+
+###
+POST http://localhost:9000/products
+Content-Type: application/json
+
+{
+  "id": "",
+  "title": "Test title",
+  "description": "Test description",
+  "items": [
+    {
+      "id": "",
+      "price": 1000,
+      "quantity": 23,
+      "isAvailable": true
+    }
+  ]
+}
+
+###
+PUT http://localhost:9000/products
+Content-Type: application/json
+
+  {
+    "id": "94b704ce-ec8d-4f67-ae90-6c0e751d77ee",
+    "title": "Test title",
+    "description": "Test description",
+    "items": [
+      {
+        "id": "17c6cefc-4485-44a0-9165-89f4d89e8d4d",
+        "price": 999,
+        "quantity": 99,
+        "isAvailable": true
+      },
+      {
+        "id": "",
+        "price": 33,
+        "quantity": 66,
+        "isAvailable": false
+      }
+    ]
+  }
+
+
+###
+GET http://localhost:9000/logout
