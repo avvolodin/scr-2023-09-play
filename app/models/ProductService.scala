@@ -1,6 +1,11 @@
 package models
 
 import models.dto.{ProductCreateDTO, ProductDTO, ProductItemDTO}
+import com.google.inject.Inject
+import models.dao.entities
+import models.dao.entities.{Product, ProductItem}
+import models.dao.repositories.ProductRepository
+import models.dto.{ProductDTO, ProductItemDTO}
 
 import java.util.UUID
 import scala.collection.mutable
@@ -16,61 +21,51 @@ trait ProductService {
 
 }
 
-class ProductServiceImpl extends ProductService {
-
-  //private val products: mutable.Map[String, ProductDTO] = scala.collection.mutable.Map[String, ProductDTO]()
+class ProductServiceImpl @Inject()(val productRepository: ProductRepository) extends ProductService {
 
 
-  private val productsRep: mutable.Map[String, Product] = scala.collection.mutable.Map[String, Product]()
-  private val itemsRep: mutable.Map[String, ProductItem] = scala.collection.mutable.Map[String, ProductItem]()
   override def list(): Seq[ProductDTO] = {
-    productsRep.values.map(p => ProductDTO.fromProduct(p, itemsRep.values.filter(i => i.productId == p.id))).toSeq
+    productRepository.listProductsWithItems()
+      .groupBy(pp => pp._1)
+      .map(g => ProductDTO(g._1.id, g._1.title, g._1.description,
+        if (g._2.size == 1 && g._2.head._2.isEmpty) {
+          List.empty[ProductItemDTO]
+        } else {
+          g._2.filter(_._2.isDefined).map(_._2.map(pi => ProductItemDTO(pi.id, pi.price, pi.quantity, pi.isAvailable)).orNull)
+        }
+      )
+      ).toSeq
   }
 
-  override def update(productDTO: ProductDTO): Option[ProductDTO] = if(productsRep.contains(productDTO.id)){
+  override def update(productDTO: ProductDTO): Option[ProductDTO] =  {
 
-    val n = productDTO.items.map(_.id).toSet
-    val e = itemsRep.values.filter(_.productId == productDTO.id).map(_.id).toSet
-    (e &~ n).foreach(itemsRep.remove)
-    productDTO.items.foreach(i => if(itemsRep.contains(i.id)){
-      itemsRep(i.id) = ProductItem(i.id, i.price, i.quantity, i.isAvailable, productDTO.id)
-    } else {
-      val newItemId = UUID.randomUUID().toString
-      itemsRep(newItemId) = ProductItem(newItemId, i.price, i.quantity, i.isAvailable, productDTO.id)
-    })
-    productsRep(productDTO.id) = Product(productDTO.id, productDTO.title, productDTO.description)
+    productRepository.updateProduct(Product(productDTO.id, productDTO.title, productDTO.description),
+      productDTO.items.map(i => ProductItem(i.id, i.price, i.quantity, i.isAvailable, productDTO.id)))
+
     get(productDTO.id)
-  } else None
-
-  override def create(productDTO: ProductCreateDTO): ProductDTO = {
-    val pId = UUID.randomUUID().toString
-    val items = productDTO.items
-      .map(i=> ProductItem(UUID.randomUUID().toString, i.price, i.quantity, i.isAvailable, pId))
-    val newProduct = Product(pId, productDTO.title, productDTO.description)
-    productsRep(newProduct.id) = newProduct
-    items.foreach(i => itemsRep(i.id) = i)
-    ProductDTO.fromProduct(newProduct, items)
   }
 
-  override def delete(productId: String): Boolean = if(productsRep.contains(productId)) {
-    productsRep.remove(productId)
-    val keys = itemsRep.values.filter(i=>i.productId==productId).map(i=>i.id)
-    keys.foreach(itemsRep.remove)
-    true
-  } else {
-    false
+  override def create(productDTO: ProductDTO): ProductDTO = {
+    get(productRepository.insertProduct(Product("", productDTO.title, productDTO.description),
+      productDTO.items.map(i => ProductItem("", i.price, i.quantity, i.isAvailable, productId = ""))).id).orNull
   }
+
+  override def delete(productId: String): Boolean = productRepository.deleteProduct(productId)
 
   override def get(productId: String): Option[ProductDTO] =
-    productsRep
-      .get(productId)
-      .map(p=>ProductDTO.fromProduct(p, itemsRep.values.filter(i=>i.productId==productId))
-      )
+    productRepository.getProductWithItems(productId).map(p => ProductDTO(p._1.id, p._1.title, p._1.description,
+      p._2.map(i => ProductItemDTO(i.id, i.price, i.quantity, i.isAvailable))))
 
-  override def find(text: String): Seq[ProductDTO] =
-    productsRep
-      .values
-      .filter(p => p.title.contains(text))
-      .map(p=>ProductDTO.fromProduct(p, itemsRep.values.filter(i=>i.productId==p.id))
+  override def find(text: String): Seq[ProductDTO] = {
+    productRepository.findProducts(text)
+      .groupBy(pp => pp._1)
+      .map(g => ProductDTO(g._1.id, g._1.title, g._1.description,
+        if (g._2.size == 1 && g._2.head._2.isEmpty) {
+          List.empty[ProductItemDTO]
+        } else {
+          g._2.filter(_._2.isDefined).map(_._2.map(pi => ProductItemDTO(pi.id, pi.price, pi.quantity, pi.isAvailable)).orNull)
+        }
+      )
       ).toSeq
+  }
 }

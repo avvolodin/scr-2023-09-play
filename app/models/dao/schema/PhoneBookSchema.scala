@@ -1,6 +1,6 @@
 package models.dao.schema
 
-import models.dao.entities.{Address, PhoneRecord}
+import models.dao.entities.{Address, PhoneRecord, Product, ProductItem}
 import org.squeryl.Schema
 
 

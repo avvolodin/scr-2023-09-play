@@ -42,5 +42,37 @@
               referencedColumnNames="id"
               referencedTableName="Address"/>
         </changeSet>
+        <changeSet id="ProductRepository" author="avvolodin">
+            <createTable tableName="Product">
+                <column name="id" type="text">
+                    <constraints primaryKey="true" nullable="false"/>
+                </column>
+                <column name="title" type="text">
+                    <constraints nullable="false"/>
+                </column>
+                <column name="description" type="text">
+                    <constraints nullable="false"/>
+                </column>
+            </createTable>
+            <createTable tableName="ProductItem">
+                <column name="id" type="text">
+                    <constraints primaryKey="true" nullable="false"/>
+                </column>
+                <column name="price" type="INT">
+                    <constraints nullable="false"/>
+                </column>
+                <column name="quantity" type="INT">
+                    <constraints nullable="false"/>
+                </column>
+                <column name="isAvailable" type="BOOLEAN">
+                    <constraints nullable="false"/>
+                </column>
+                <column name="productId" type="text">
+                    <constraints foreignKeyName="itemToProduct"/>
+                </column>
+            </createTable>
+            <addForeignKeyConstraint baseTableName="ProductItem" baseColumnNames="productId" constraintName="itemToProduct" referencedTableName="Product"
+                                     referencedColumnNames="id" onDelete="CASCADE"/>
+        </changeSet>
 
 </databaseChangeLog>
