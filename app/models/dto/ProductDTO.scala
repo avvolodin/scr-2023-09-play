@@ -1,7 +1,7 @@
 package models.dto
 
+import models.dao.entities.{Product, ProductItem}
 import play.api.libs.json.{JsPath, JsValue, Json, Reads, Writes}
-import models.{Product, ProductItem}
 
 import java.util.UUID
 
