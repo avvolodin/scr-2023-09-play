@@ -3,14 +3,14 @@ package controllers
 import com.google.inject.Inject
 import controllers.actions.authAction
 import models.{LoginService, ProductService}
-import models.dto.ProductDTO
+import models.dto.{ProductCreateDTO, ProductDTO}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, Controller}
 
 class ProductController @Inject()(loginService: LoginService, productService: ProductService) extends Controller{
 
   // POST /products
-  def create(): Action[ProductDTO] = authAction(loginService)(parse.json[ProductDTO]){ rc =>
+  def create(): Action[ProductCreateDTO] = authAction(loginService)(parse.json[ProductCreateDTO]){ rc =>
     Ok(Json.toJson(productService.create(rc.body)))
   }
 
