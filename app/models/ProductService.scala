@@ -45,7 +45,7 @@ class ProductServiceImpl @Inject()(val productRepository: ProductRepository) ext
     get(productDTO.id)
   }
 
-  override def create(productDTO: ProductDTO): ProductDTO = {
+  override def create(productDTO: ProductCreateDTO): ProductDTO = {
     get(productRepository.insertProduct(Product("", productDTO.title, productDTO.description),
       productDTO.items.map(i => ProductItem("", i.price, i.quantity, i.isAvailable, productId = ""))).id).orNull
   }
