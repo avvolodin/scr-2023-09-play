@@ -41,7 +41,7 @@ class PhoneRecordRepositorySlickImpl extends PhoneRecordRepositorySlick with Sli
   def findWithAddress2(phone: String): Future[Option[(PhoneRecord, Address)]] = {
     db.run(phoneRecords
       .join(addresses)
-      .on(_.addressId == _.id)
+      .on(_.addressId === _.id)
       .filter(_._1.phone === phone)
       .sortBy(_._1.phone.asc.nullsLast)
       .take(1)
